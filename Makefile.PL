@@ -10,7 +10,7 @@ WriteMakefile(
         Moose                 => 0,
         CPAN::Mini            => 0.573,
         Path::Class           => 0.16,
-        App::Cache            => 0.35,
+        App::Cache            => 0.36,
         Parse::CPAN::Packages => 2.30,
         Parse::CPAN::Authors  => 2.27,
         Parse::CPAN::Whois    => 0,

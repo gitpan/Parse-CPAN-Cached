@@ -2,7 +2,7 @@ NAME
     Parse::CPAN::Cached - Parse CPAN meta files & cache the results
 
 VERSION
-    Version 0.01
+    Version 0.02
 
 SYNOPSIS
     Ensure you already have a CPAN::Mini mirror setup, then:

@@ -9,7 +9,7 @@ use Parse::CPAN::Authors;
 use Parse::CPAN::Packages;
 use Parse::CPAN::Whois;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has 'cpan_mini_config' => (
     is            => 'ro',
@@ -113,7 +113,7 @@ Parse::CPAN::Cached - Parse CPAN meta files & cache the results
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 

@@ -6,10 +6,10 @@ use warnings;
 use Test::Most;
 use FindBin;
 use File::Temp qw<tempdir>;
-use Path::Class qw<dir>;
 use App::Cache;
 use Cwd qw<getcwd>;
 
+my $cache_directory = tempdir(CLEANUP => 1);
 my ($local, $test_count);
 my (%path_tests, %isa_tests, %key_tests);
 BEGIN{
@@ -30,7 +30,7 @@ BEGIN{
         whois       => 'Parse::CPAN::Whois',
         packages    => 'Parse::CPAN::Packages',
     );
-    $test_count = 14
+    $test_count = 10
                 +   scalar(keys %path_tests)
                 +   scalar(keys %key_tests)
                 + 2*scalar(keys %isa_tests)
@@ -44,10 +44,17 @@ require_ok('Parse::CPAN::Cached');
 # This works regardless of whether you have a ~/.minicpanrc because
 # we don't notice it is missing until we call cache_dir (which is a lazy
 # or deferred attribute).  This test may be a bit pointless.
-ok(Parse::CPAN::Cached->new(), 'Basic construction works');
+ok(
+    Parse::CPAN::Cached->new(cache => get_app_cache()),
+    'Basic construction works'
+);
 
 # Invalid/missing cpan_mini_config should return a fatal error
-my $cached = Parse::CPAN::Cached->new(cpan_mini_config => {});
+my $cached = Parse::CPAN::Cached->new(
+    cpan_mini_config => {},
+    cache            => get_app_cache(),
+);
+
 throws_ok { $cached->cache_dir } qr/Have you loaded minicpan\?/,
     'No cpan_mini_config error caught correctly';
 
@@ -104,8 +111,6 @@ key_tests($local,
     is($info_called, 2, 'Custom info sub called twice, caching working');
 }
 
-cleanup_cache(get_app_cache());
-
 # Move 00whois.xml back to original location (see deleted_whois key test)
 END {
     rename "$local/00whois.xml", "$local/authors/00whois.xml"
@@ -150,35 +155,5 @@ sub get_a_cache {
 # We supply our own App::Cache to ensure we use a different cache dir from what
 # a properly/previously installed Parse::CPAN::Cached instance would.
 sub get_app_cache {
-    return App::Cache->new({
-        application => 'Parse::CPAN::Cached::Test'
-    });
-}
-
-# XXX We would prefer to create an App::Cache object using a (tmp) directory of
-# our choosing.  Then we could safely remove our temp directory when finished.
-# App::Cache doesn't currently allow this.
-sub cleanup_cache { my ($cache) = @_;
-
-    $cache->clear;
-    my $dir = dir(
-        $cache->directory  # undocumented method
-    );
-    safely_rmdir($dir, qr/cache\z/, q[cache directory named 'cache']);
-    safely_rmdir(
-        $dir->parent,
-        qr/\.parse_cpan_cached_test\z/,
-        q[parent cache directory named '.parse_cpan_cached_test']
-    );
-}
-
-sub safely_rmdir {
-    my ($dir, $regex, $comment) = @_;
-
-    my $path = $dir->stringify;
-
-    like($path, $regex, $comment);
-    die "Cannot continue safely because failed '$comment'"
-        if $path !~ /$regex/;
-    ok(rmdir $path, "Successfully rmdir $comment");
+    return App::Cache->new({directory => $cache_directory});
 }
